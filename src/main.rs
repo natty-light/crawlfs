@@ -1,6 +1,5 @@
 use std::env;
 use std::fs;
-use std::str;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -10,25 +9,30 @@ fn main() {
         .unwrap()
         .to_string();
     let last_in_initial_path = path.split('/').last().unwrap();
-    println!("{last_in_initial_path}");
-    traverse(path, 4);
+    let result = traverse(&path);
+    result.into_iter().for_each(|f| {
+        let file_path_from_root = format!("{last_in_initial_path}/{f}");
+        println!("{file_path_from_root}");
+    });
 }
 
-fn traverse(dir: String, spaces: usize) {
-    let paths = fs::read_dir(dir.clone());
-    let padding = str::repeat(" ", spaces);
-    match paths {
-        Ok(path) => {
-            path.for_each(|f: Result<fs::DirEntry, std::io::Error>| {
-                let is_dir = f.as_ref().unwrap().file_type().unwrap().is_dir();
-                let file_or_dir_name = f.unwrap().file_name().into_string().unwrap();
-                println!("{padding}{file_or_dir_name}");
-                if is_dir {
-                    let nested_path = format!("{dir}/{file_or_dir_name}");
-                    traverse(nested_path, spaces + 4);
-                }
-            });
+fn traverse(dir: &String) -> Vec<String> {
+    let read_dir_result: Result<fs::ReadDir, std::io::Error> = fs::read_dir(dir.clone());
+    let directory_entries: fs::ReadDir = read_dir_result.unwrap();
+    let result = directory_entries.flat_map(|f: Result<fs::DirEntry, std::io::Error>| {
+        let is_dir: bool = f.as_ref().unwrap().file_type().unwrap().is_dir();
+        let file_or_dir_name: String = f.unwrap().file_name().into_string().unwrap();
+        if is_dir {
+            let nested_path: String = format!("{dir}/{file_or_dir_name}");
+            let nested_result: Vec<String> = traverse(&nested_path)
+                .into_iter()
+                .map(|f| format!("{file_or_dir_name}/{f}"))
+                .collect();
+            return nested_result;
+        } else {
+            return vec![format!("{file_or_dir_name}")];
         }
-        Err(err) => println!("{err}"),
-    }
+    });
+
+    return result.collect();
 }
