@@ -19,20 +19,19 @@ fn main() {
 fn traverse(dir: &String) -> Vec<String> {
     let read_dir_result: Result<fs::ReadDir, std::io::Error> = fs::read_dir(dir.clone());
     let directory_entries: fs::ReadDir = read_dir_result.unwrap();
-    let result = directory_entries.flat_map(|f: Result<fs::DirEntry, std::io::Error>| {
-        let is_dir: bool = f.as_ref().unwrap().file_type().unwrap().is_dir();
-        let file_or_dir_name: String = f.unwrap().file_name().into_string().unwrap();
-        if is_dir {
-            let nested_path: String = format!("{dir}/{file_or_dir_name}");
-            let nested_result: Vec<String> = traverse(&nested_path)
-                .into_iter()
-                .map(|f| format!("{file_or_dir_name}/{f}"))
-                .collect();
-            return nested_result;
-        } else {
-            return vec![format!("{file_or_dir_name}")];
-        }
-    });
-
-    return result.collect();
+    return directory_entries
+        .flat_map(|f: Result<fs::DirEntry, std::io::Error>| {
+            let is_dir: bool = f.as_ref().unwrap().file_type().unwrap().is_dir();
+            let file_or_dir_name: String = f.unwrap().file_name().into_string().unwrap();
+            if is_dir {
+                let nested_path: String = format!("{dir}/{file_or_dir_name}");
+                return traverse(&nested_path)
+                    .into_iter()
+                    .map(|f| format!("{file_or_dir_name}/{f}"))
+                    .collect();
+            } else {
+                return vec![format!("{file_or_dir_name}")];
+            }
+        })
+        .collect();
 }
