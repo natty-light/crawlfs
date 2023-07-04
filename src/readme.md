@@ -1,1 +1,1 @@
-Example filesystem crawler as PoC for simple data sync project
+Example filesystem crawler as PoC for simple data sync project, also first serious project in rust teehee
