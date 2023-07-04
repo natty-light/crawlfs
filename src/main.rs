@@ -9,7 +9,9 @@ fn main() {
         .ok_or("Unable to resolve path")
         .unwrap()
         .to_string();
-    traverse(path, 0);
+    let last_in_initial_path = path.split('/').last().unwrap();
+    println!("{last_in_initial_path}");
+    traverse(path, 4);
 }
 
 fn traverse(dir: String, spaces: usize) {
